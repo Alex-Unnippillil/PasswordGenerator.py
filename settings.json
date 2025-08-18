@@ -1,0 +1,9 @@
+{
+  "password_length": 7,
+  "use_lowercase": true,
+  "use_uppercase": true,
+  "use_digits": true,
+  "use_special_chars": true,
+  "theme": "dark",
+  "geometry": "400x440"
+}
