@@ -178,6 +178,9 @@ class PasswordGeneratorApp:
         password = ''.join(random.choice(charset) for _ in range(length))
         self.generated_password = password
         if self.auto_copy_var.get():
+            pyperclip.copy(password)
+            self.set_status("Password generated and copied to clipboard.")
+=======
             try:
                 pyperclip.copy(password)
                 self.status_bar.config(text="Password generated and copied to clipboard.")
@@ -209,6 +212,9 @@ class PasswordGeneratorApp:
 
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):
+            pyperclip.copy(self.generated_password)
+            self.set_status("Password copied.")
+=======
             try:
                 pyperclip.copy(self.generated_password)
             except pyperclip.PyperclipException:
@@ -254,6 +260,9 @@ class PasswordGeneratorApp:
             self.copy_password_from_history(selected_password)
 
     def copy_password_from_history(self, password):
+        pyperclip.copy(password)
+        self.set_status("Password copied.")
+=======
         try:
             pyperclip.copy(password)
         except pyperclip.PyperclipException:
