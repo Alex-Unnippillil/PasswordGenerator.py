@@ -3,6 +3,8 @@ from tkinter import messagebox, ttk, filedialog
 import string
 import random
 import pyperclip
+import os
+import json
 
 class PasswordGeneratorApp:
     def __init__(self, root):
@@ -11,8 +13,10 @@ class PasswordGeneratorApp:
         self.root.geometry("400x440")
         self.password_length_value = tk.StringVar()
         self.password_length_value.set("7")
+        self.history_file = os.path.join(os.path.dirname(__file__), "password_history.json")
         self.password_history = []
         self.create_widgets()
+        self.load_history()
 
     def create_widgets(self):
         self.root.configure(bg="black")
@@ -57,6 +61,8 @@ class PasswordGeneratorApp:
         self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
         self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
+        self.clear_history_button = tk.Button(self.root, text="Clear History", command=self.clear_history, bg="black", fg="white")
+        self.clear_history_button.pack(pady=5)
 
     def generate_password(self):
         length = int(self.password_length.get())
@@ -87,6 +93,7 @@ class PasswordGeneratorApp:
         messagebox.showinfo("Generated Password", f"Your password is:\n{password}")
         self.password_history.append(password)
         self.update_password_history()
+        self.save_history()
 
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):  
@@ -110,6 +117,25 @@ class PasswordGeneratorApp:
         self.password_listbox.delete(0, tk.END)
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
+
+    def load_history(self):
+        if os.path.exists(self.history_file):
+            try:
+                with open(self.history_file, "r") as file:
+                    self.password_history = json.load(file)
+            except json.JSONDecodeError:
+                self.password_history = []
+            self.update_password_history()
+
+    def save_history(self):
+        with open(self.history_file, "w") as file:
+            json.dump(self.password_history, file)
+
+    def clear_history(self):
+        self.password_history = []
+        self.update_password_history()
+        if os.path.exists(self.history_file):
+            os.remove(self.history_file)
 
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
