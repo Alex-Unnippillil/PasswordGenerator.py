@@ -2,7 +2,21 @@ import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 import string
 import random
-import pyperclip
+
+try:
+    import pyperclip
+    PYPERCLIP_AVAILABLE = True
+except ImportError:  # pragma: no cover - handled at runtime
+    PYPERCLIP_AVAILABLE = False
+
+    def _pyperclip_copy_stub(_text):
+        messagebox.showwarning(
+            "Pyperclip Unavailable",
+            "Pyperclip is not installed. Install it to enable clipboard copying.",
+        )
+
+    class pyperclip:  # type: ignore
+        copy = staticmethod(_pyperclip_copy_stub)
 
 class Tooltip:
     def __init__(self, widget, text):
@@ -166,6 +180,20 @@ class PasswordGeneratorApp:
         if self.auto_copy_var.get():
             pyperclip.copy(password)
             self.set_status("Password generated and copied to clipboard.")
+=======
+            try:
+                pyperclip.copy(password)
+                self.status_bar.config(text="Password generated and copied to clipboard.")
+            except pyperclip.PyperclipException:
+                self.status_bar.config(text="Password generated.")
+                self.set_status("Clipboard unavailable.")
+=======
+            if PYPERCLIP_AVAILABLE:
+                pyperclip.copy(password)
+                self.set_status("Password generated and copied to clipboard.")
+            else:
+                pyperclip.copy(password)
+                self.set_status("Password generated. Install pyperclip to enable copying.")
         else:
             self.set_status("Password generated.")
         self.show_password_strength(password)
@@ -186,6 +214,18 @@ class PasswordGeneratorApp:
         if hasattr(self, "generated_password"):
             pyperclip.copy(self.generated_password)
             self.set_status("Password copied.")
+=======
+            try:
+                pyperclip.copy(self.generated_password)
+            except pyperclip.PyperclipException:
+                self.set_status("Clipboard unavailable.")
+=======
+            if PYPERCLIP_AVAILABLE:
+                pyperclip.copy(self.generated_password)
+                self.set_status("Password copied to clipboard.")
+            else:
+                pyperclip.copy(self.generated_password)
+                self.set_status("Install pyperclip to enable copying.")
         else:
             self.set_status("Please generate a password first.")
 
@@ -199,6 +239,11 @@ class PasswordGeneratorApp:
             with open(file_path, "w") as file:
                 file.write("\n".join(self.password_history))
             self.set_status("Passwords saved successfully.")
+
+    def clear_history(self):
+        self.password_history = []
+        self.update_password_history()
+        self.set_status("History cleared.")
 
     def update_password_history(self):
         self.password_listbox.delete(0, tk.END)
@@ -217,6 +262,19 @@ class PasswordGeneratorApp:
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
         self.set_status("Password copied.")
+=======
+        try:
+            pyperclip.copy(password)
+        except pyperclip.PyperclipException:
+            self.set_status("Clipboard unavailable.")
+=======
+        if PYPERCLIP_AVAILABLE:
+            pyperclip.copy(password)
+            self.set_status("Password copied to clipboard.")
+        else:
+            pyperclip.copy(password)
+            self.set_status("Install pyperclip to enable copying.")
+
 
     def show_about(self):
         messagebox.showinfo("About", "Password Generator\nGenerate secure passwords.")
