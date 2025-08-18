@@ -48,6 +48,14 @@ class PasswordGeneratorApp:
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
         self.progress.pack()
+        self.auto_copy_var = tk.BooleanVar()
+        self.auto_copy_check = ttk.Checkbutton(
+            self.root,
+            text="Auto-copy",
+            variable=self.auto_copy_var,
+            style="Custom.TCheckbutton",
+        )
+        self.auto_copy_check.pack()
         self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
         self.copy_button.pack()
         self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
@@ -57,11 +65,7 @@ class PasswordGeneratorApp:
         self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
         self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
-        self.context_menu = tk.Menu(self.root, tearoff=0)
-        self.context_menu.add_command(label="Copy", command=self.copy_selected_password)
-        self.context_menu.add_command(label="Delete", command=self.delete_selected_password)
-        self.password_listbox.bind("<Button-3>", self.show_context_menu)
-        self.password_listbox.bind("<Button-2>", self.show_context_menu)
+
 
     def generate_password(self):
         length = int(self.password_length.get())
@@ -84,7 +88,12 @@ class PasswordGeneratorApp:
             return
 
         password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        self.generated_password = password
+        if self.auto_copy_var.get():
+            pyperclip.copy(password)
+            self.status_bar.config(text="Password generated and copied to clipboard.")
+        else:
+            self.status_bar.config(text="Password generated.")
         self.show_password_strength(password)
         self.show_password_message(password)
 
@@ -94,9 +103,10 @@ class PasswordGeneratorApp:
         self.update_password_history()
 
     def copy_to_clipboard(self):
-        if hasattr(self, "generated_password"):  
+        if hasattr(self, "generated_password"):
             pyperclip.copy(self.generated_password)
             messagebox.showinfo("Password Copied", "Password copied to clipboard successfully.")
+            self.status_bar.config(text="Password copied to clipboard.")
         else:
             messagebox.showwarning("No Password Generated", "Please generate a password first.")
 
@@ -150,6 +160,7 @@ class PasswordGeneratorApp:
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
         messagebox.showinfo("Password Copied", "Password copied to clipboard from history.")
+        self.status_bar.config(text="Password copied to clipboard from history.")
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
