@@ -65,8 +65,7 @@ class PasswordGeneratorApp:
         self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
         self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
-        self.status_bar = tk.Label(self.root, text="", bg="black", fg="white", anchor="w")
-        self.status_bar.pack(fill="x")
+
 
     def generate_password(self):
         length = int(self.password_length.get())
@@ -126,6 +125,31 @@ class PasswordGeneratorApp:
         self.password_listbox.delete(0, tk.END)
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
+
+    def show_context_menu(self, event):
+        self.password_listbox.unbind("<<ListboxSelect>>")
+        index = self.password_listbox.nearest(event.y)
+        if index >= 0:
+            self.password_listbox.selection_clear(0, tk.END)
+            self.password_listbox.selection_set(index)
+        self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
+        try:
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()
+
+    def copy_selected_password(self):
+        selected_index = self.password_listbox.curselection()
+        if selected_index:
+            selected_password = self.password_listbox.get(selected_index)
+            self.copy_password_from_history(selected_password)
+
+    def delete_selected_password(self):
+        selected_index = self.password_listbox.curselection()
+        if selected_index:
+            index = selected_index[0]
+            del self.password_history[index]
+            self.update_password_history()
 
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
