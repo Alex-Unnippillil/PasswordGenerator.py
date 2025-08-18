@@ -165,9 +165,9 @@ class PasswordGeneratorApp:
         self.generated_password = password
         if self.auto_copy_var.get():
             pyperclip.copy(password)
-            self.status_bar.config(text="Password generated and copied to clipboard.")
+            self.set_status("Password generated and copied to clipboard.")
         else:
-            self.status_bar.config(text="Password generated.")
+            self.set_status("Password generated.")
         self.show_password_strength(password)
         self.show_password_message(password)
 
@@ -185,7 +185,7 @@ class PasswordGeneratorApp:
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):
             pyperclip.copy(self.generated_password)
-
+            self.set_status("Password copied.")
         else:
             self.set_status("Please generate a password first.")
 
@@ -216,7 +216,7 @@ class PasswordGeneratorApp:
 
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
-
+        self.set_status("Password copied.")
 
     def show_about(self):
         messagebox.showinfo("About", "Password Generator\nGenerate secure passwords.")
