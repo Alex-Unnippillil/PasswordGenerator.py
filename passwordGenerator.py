@@ -4,6 +4,37 @@ import string
 import random
 import pyperclip
 
+class Tooltip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tipwindow = None
+        self.widget.bind("<Enter>", self.show_tip)
+        self.widget.bind("<Leave>", self.hide_tip)
+
+    def show_tip(self, _event=None):
+        if self.tipwindow or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 10
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw,
+            text=self.text,
+            background="lightyellow",
+            relief="solid",
+            borderwidth=1,
+            font=("tahoma", "8", "normal"),
+        )
+        label.pack(ipadx=1)
+
+    def hide_tip(self, _event=None):
+        if self.tipwindow:
+            self.tipwindow.destroy()
+            self.tipwindow = None
+
 class PasswordGeneratorApp:
     def __init__(self, root):
         self.root = root
@@ -45,6 +76,7 @@ class PasswordGeneratorApp:
         self.label_length.pack()
         self.password_length = tk.Entry(self.root, textvariable=self.password_length_value)
         self.password_length.pack()
+        self.tooltip_length = Tooltip(self.password_length, "Set desired password length")
         self.label_charset = tk.Label(self.root, text="Character Set:", bg="black", fg="white")
         self.label_charset.pack()
         self.use_lowercase = tk.BooleanVar()
@@ -56,18 +88,23 @@ class PasswordGeneratorApp:
         style.configure("Status.TLabel", background="lightgray")
         self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase, style="Custom.TCheckbutton")
         self.check_lowercase.pack()
+        self.tooltip_lowercase = Tooltip(self.check_lowercase, "Include lowercase letters")
         self.check_uppercase = ttk.Checkbutton(self.root, text="Uppercase", variable=self.use_uppercase, style="Custom.TCheckbutton")
         self.check_uppercase.pack()
+        self.tooltip_uppercase = Tooltip(self.check_uppercase, "Include uppercase letters")
         self.check_digits = ttk.Checkbutton(self.root, text="Digits", variable=self.use_digits, style="Custom.TCheckbutton")
         self.check_digits.pack()
+        self.tooltip_digits = Tooltip(self.check_digits, "Include numbers")
         self.check_special_chars = ttk.Checkbutton(self.root, text="Special Characters", variable=self.use_special_chars, style="Custom.TCheckbutton")
         self.check_special_chars.pack()
+        self.tooltip_special_chars = Tooltip(self.check_special_chars, "Include special characters")
         self.use_lowercase.set(True)
         self.use_uppercase.set(True)
         self.use_digits.set(True)
         self.use_special_chars.set(True)
         self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
         self.generate_button.pack(pady=10)
+        self.tooltip_generate = Tooltip(self.generate_button, "Create a new password")
         self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
@@ -82,8 +119,10 @@ class PasswordGeneratorApp:
         self.auto_copy_check.pack()
         self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
         self.copy_button.pack()
+        self.tooltip_copy = Tooltip(self.copy_button, "Copy password to clipboard")
         self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
         self.save_button.pack()
+        self.tooltip_save = Tooltip(self.save_button, "Save passwords to file")
         self.history_label = tk.Label(self.root, text="Password History:", bg="black", fg="white")
         self.history_label.pack()
         self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
