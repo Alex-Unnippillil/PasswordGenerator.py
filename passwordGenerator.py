@@ -12,51 +12,99 @@ class PasswordGeneratorApp:
         self.password_length_value = tk.StringVar()
         self.password_length_value.set("7")
         self.password_history = []
+        self.dark_mode = tk.BooleanVar(value=True)
+        self.style = ttk.Style()
+        self.style.configure('Dark.TCheckbutton', background='black', foreground='white')
+        self.style.configure('Light.TCheckbutton', background='white', foreground='black')
         self.create_widgets()
+        self.apply_theme()
 
     def create_widgets(self):
-        self.root.configure(bg="black")
-        self.title_label = tk.Label(self.root, text="PASSWORD GENERATOR", font=("Arial", 24, "bold"), bg="black", fg="white")
+        self.title_label = tk.Label(self.root, text="PASSWORD GENERATOR", font=("Arial", 24, "bold"))
         self.title_label.pack(pady=10)
-        self.label_length = tk.Label(self.root, text="Password Length:", bg="black", fg="white")
+        self.label_length = tk.Label(self.root, text="Password Length:")
         self.label_length.pack()
         self.password_length = tk.Entry(self.root, textvariable=self.password_length_value)
         self.password_length.pack()
-        self.label_charset = tk.Label(self.root, text="Character Set:", bg="black", fg="white")
+        self.label_charset = tk.Label(self.root, text="Character Set:")
         self.label_charset.pack()
         self.use_lowercase = tk.BooleanVar()
         self.use_uppercase = tk.BooleanVar()
         self.use_digits = tk.BooleanVar()
         self.use_special_chars = tk.BooleanVar()
-        style = ttk.Style()
-        style.configure("Custom.TCheckbutton", background="black", foreground="white")
-        self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase, style="Custom.TCheckbutton")
+        self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase)
         self.check_lowercase.pack()
-        self.check_uppercase = ttk.Checkbutton(self.root, text="Uppercase", variable=self.use_uppercase, style="Custom.TCheckbutton")
+        self.check_uppercase = ttk.Checkbutton(self.root, text="Uppercase", variable=self.use_uppercase)
         self.check_uppercase.pack()
-        self.check_digits = ttk.Checkbutton(self.root, text="Digits", variable=self.use_digits, style="Custom.TCheckbutton")
+        self.check_digits = ttk.Checkbutton(self.root, text="Digits", variable=self.use_digits)
         self.check_digits.pack()
-        self.check_special_chars = ttk.Checkbutton(self.root, text="Special Characters", variable=self.use_special_chars, style="Custom.TCheckbutton")
+        self.check_special_chars = ttk.Checkbutton(self.root, text="Special Characters", variable=self.use_special_chars)
         self.check_special_chars.pack()
+        self.dark_mode_check = ttk.Checkbutton(self.root, text="Dark mode", variable=self.dark_mode, command=self.toggle_theme)
+        self.dark_mode_check.pack()
         self.use_lowercase.set(True)
         self.use_uppercase.set(True)
         self.use_digits.set(True)
         self.use_special_chars.set(True)
-        self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
+        self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password)
         self.generate_button.pack(pady=10)
-        self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
+        self.strength_label = tk.Label(self.root, text="Password Strength:")
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
         self.progress.pack()
-        self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
+        self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard)
         self.copy_button.pack()
-        self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
+        self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file)
         self.save_button.pack()
-        self.history_label = tk.Label(self.root, text="Password History:", bg="black", fg="white")
+        self.history_label = tk.Label(self.root, text="Password History:")
         self.history_label.pack()
-        self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
+        self.password_listbox = tk.Listbox(self.root)
         self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
+        self.checkbuttons = [
+            self.check_lowercase,
+            self.check_uppercase,
+            self.check_digits,
+            self.check_special_chars,
+            self.dark_mode_check,
+        ]
+
+    def toggle_theme(self):
+        self.apply_theme()
+
+    def apply_theme(self):
+        if self.dark_mode.get():
+            bg_color = "black"
+            fg_color = "white"
+            style_name = 'Dark.TCheckbutton'
+            self.style.theme_use('clam')
+        else:
+            bg_color = "white"
+            fg_color = "black"
+            style_name = 'Light.TCheckbutton'
+            self.style.theme_use('default')
+
+        self.style.configure('TProgressbar', background=fg_color)
+        for cb in self.checkbuttons:
+            cb.configure(style=style_name)
+
+        self.root.configure(bg=bg_color)
+        labels = [self.title_label, self.label_length, self.label_charset,
+                  self.strength_label, self.history_label]
+        for label in labels:
+            label.configure(bg=bg_color, fg=fg_color)
+
+        buttons = [self.generate_button, self.copy_button, self.save_button]
+        for btn in buttons:
+            btn.configure(bg=bg_color, fg=fg_color)
+
+        self.password_length.configure(bg=bg_color, fg=fg_color, insertbackground=fg_color)
+        self.password_listbox.configure(
+            bg=bg_color,
+            fg=fg_color,
+            selectbackground="gray" if self.dark_mode.get() else "lightgray",
+            selectforeground=bg_color,
+        )
 
     def generate_password(self):
         length = int(self.password_length.get())
