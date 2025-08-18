@@ -13,6 +13,10 @@ class PasswordGeneratorApp:
         self.password_length_value.set("7")
         self.password_history = []
         self.create_widgets()
+        self.create_menu()
+        self.root.bind("<Control-g>", lambda e: self.generate_password())
+        self.root.bind("<Control-c>", lambda e: self.copy_to_clipboard())
+        self.root.bind("<Control-s>", lambda e: self.save_password_to_file())
 
     def create_widgets(self):
         self.root.configure(bg="black")
@@ -65,6 +69,7 @@ class PasswordGeneratorApp:
         self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
         self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
+
 
 
     def generate_password(self):
