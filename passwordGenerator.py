@@ -200,6 +200,11 @@ class PasswordGeneratorApp:
                 file.write("\n".join(self.password_history))
             self.set_status("Passwords saved successfully.")
 
+    def clear_history(self):
+        self.password_history = []
+        self.update_password_history()
+        self.set_status("History cleared.")
+
     def update_password_history(self):
         self.password_listbox.delete(0, tk.END)
         for password in self.password_history:
