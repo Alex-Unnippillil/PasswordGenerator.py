@@ -16,6 +16,24 @@ class PasswordGeneratorApp:
 
     def create_widgets(self):
         self.root.configure(bg="black")
+
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        file_menu.add_command(label="Generate", command=self.generate_password)
+        file_menu.add_command(label="Save", command=self.save_password_to_file)
+        file_menu.add_command(label="Clear History", command=self.clear_history)
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        self.menu_bar.add_cascade(label="File", menu=file_menu)
+
+        edit_menu = tk.Menu(self.menu_bar, tearoff=0)
+        edit_menu.add_command(label="Copy", command=self.copy_to_clipboard)
+        self.menu_bar.add_cascade(label="Edit", menu=edit_menu)
+
+        help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        help_menu.add_command(label="About", command=self.show_about)
+        self.menu_bar.add_cascade(label="Help", menu=help_menu)
         self.title_label = tk.Label(self.root, text="PASSWORD GENERATOR", font=("Arial", 24, "bold"), bg="black", fg="white")
         self.title_label.pack(pady=10)
         self.label_length = tk.Label(self.root, text="Password Length:", bg="black", fg="white")
@@ -111,6 +129,10 @@ class PasswordGeneratorApp:
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
 
+    def clear_history(self):
+        self.password_history.clear()
+        self.update_password_history()
+
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
         if selected_index:
@@ -120,6 +142,9 @@ class PasswordGeneratorApp:
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
         messagebox.showinfo("Password Copied", "Password copied to clipboard from history.")
+
+    def show_about(self):
+        messagebox.showinfo("About", "Password Generator\nGenerate secure passwords.")
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
