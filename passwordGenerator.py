@@ -44,6 +44,18 @@ class PasswordGeneratorApp:
         self.use_special_chars.set(True)
         self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
         self.generate_button.pack(pady=10)
+        self.password_display = tk.Entry(self.root, show='*')
+        self.password_display.pack()
+        self.show_password_var = tk.BooleanVar(value=False)
+        self.show_password_check = tk.Checkbutton(
+            self.root,
+            text="Show Password",
+            variable=self.show_password_var,
+            command=self.toggle_password_visibility,
+            bg="black",
+            fg="white",
+        )
+        self.show_password_check.pack()
         self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
@@ -79,7 +91,9 @@ class PasswordGeneratorApp:
             return
 
         password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        self.generated_password = password
+        self.password_display.delete(0, tk.END)
+        self.password_display.insert(0, password)
         self.show_password_strength(password)
         self.show_password_message(password)
 
@@ -120,6 +134,12 @@ class PasswordGeneratorApp:
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
         messagebox.showinfo("Password Copied", "Password copied to clipboard from history.")
+
+    def toggle_password_visibility(self):
+        if self.show_password_var.get():
+            self.password_display.config(show='')
+        else:
+            self.password_display.config(show='*')
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
