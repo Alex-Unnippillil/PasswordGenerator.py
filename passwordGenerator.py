@@ -74,7 +74,7 @@ class PasswordGeneratorApp:
         self.title_label.pack(pady=10)
         self.label_length = tk.Label(self.root, text="Password Length:", bg="black", fg="white")
         self.label_length.pack()
-        self.password_length = tk.Entry(self.root, textvariable=self.password_length_value)
+        self.password_length = tk.Spinbox(self.root, from_=4, to=128, textvariable=self.password_length_value)
         self.password_length.pack()
         self.tooltip_length = Tooltip(self.password_length, "Set desired password length")
         self.label_charset = tk.Label(self.root, text="Character Set:", bg="black", fg="white")
@@ -134,7 +134,15 @@ class PasswordGeneratorApp:
 
 
     def generate_password(self):
-        length = int(self.password_length.get())
+        try:
+            length = int(self.password_length.get())
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number for password length.")
+            return
+
+        if not 4 <= length <= 128:
+            messagebox.showerror("Error", "Password length must be between 4 and 128.")
+            return
         charset = ""
 
         if self.use_lowercase.get():
