@@ -44,12 +44,19 @@ class PasswordGeneratorApp:
         self.use_special_chars.set(True)
         self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
         self.generate_button.pack(pady=10)
+        self.password_frame = tk.Frame(self.root, bg="black")
+        self.password_frame.pack(pady=5)
+        self.password_display = tk.Entry(self.password_frame, show='•')
+        self.password_display.pack(side=tk.LEFT, padx=(0, 5))
+        self.copy_icon_button = tk.Button(self.password_frame, text='📋', command=self.copy_to_clipboard, bg="black", fg="white")
+        self.copy_icon_button.pack(side=tk.LEFT)
+        self.show_password_var = tk.BooleanVar()
+        self.show_password_check = ttk.Checkbutton(self.password_frame, variable=self.show_password_var, command=self.toggle_password_visibility, style="Custom.TCheckbutton")
+        self.show_password_check.pack(side=tk.LEFT)
         self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
         self.progress.pack()
-        self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
-        self.copy_button.pack()
         self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
         self.save_button.pack()
         self.history_label = tk.Label(self.root, text="Password History:", bg="black", fg="white")
@@ -79,14 +86,18 @@ class PasswordGeneratorApp:
             return
 
         password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        self.generated_password = password
+        self.password_display.delete(0, tk.END)
+        self.password_display.insert(0, password)
         self.show_password_strength(password)
-        self.show_password_message(password)
-
-    def show_password_message(self, password):
-        messagebox.showinfo("Generated Password", f"Your password is:\n{password}")
         self.password_history.append(password)
         self.update_password_history()
+
+    def toggle_password_visibility(self):
+        if self.show_password_var.get():
+            self.password_display.config(show='')
+        else:
+            self.password_display.config(show='•')
 
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):  
