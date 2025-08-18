@@ -61,25 +61,36 @@ class PasswordGeneratorApp:
     def generate_password(self):
         length = int(self.password_length.get())
         charset = ""
+        required_chars = []
 
         if self.use_lowercase.get():
             charset += string.ascii_lowercase
+            required_chars.append(random.choice(string.ascii_lowercase))
 
         if self.use_uppercase.get():
             charset += string.ascii_uppercase
+            required_chars.append(random.choice(string.ascii_uppercase))
 
         if self.use_digits.get():
             charset += string.digits
+            required_chars.append(random.choice(string.digits))
 
         if self.use_special_chars.get():
             charset += string.punctuation
+            required_chars.append(random.choice(string.punctuation))
 
         if not charset:
             messagebox.showerror("Error", "Please select at least one character set.")
             return
 
-        password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        if length < len(required_chars):
+            messagebox.showerror("Error", "Password length must be at least equal to the number of selected character sets.")
+            return
+
+        password_chars = required_chars + [random.choice(charset) for _ in range(length - len(required_chars))]
+        random.shuffle(password_chars)
+        password = ''.join(password_chars)
+        self.generated_password = password
         self.show_password_strength(password)
         self.show_password_message(password)
 
