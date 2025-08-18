@@ -21,6 +21,24 @@ class PasswordGeneratorApp:
 
     def create_widgets(self):
         self.root.configure(bg="black")
+
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        file_menu.add_command(label="Generate", command=self.generate_password)
+        file_menu.add_command(label="Save", command=self.save_password_to_file)
+        file_menu.add_command(label="Clear History", command=self.clear_history)
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        self.menu_bar.add_cascade(label="File", menu=file_menu)
+
+        edit_menu = tk.Menu(self.menu_bar, tearoff=0)
+        edit_menu.add_command(label="Copy", command=self.copy_to_clipboard)
+        self.menu_bar.add_cascade(label="Edit", menu=edit_menu)
+
+        help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        help_menu.add_command(label="About", command=self.show_about)
+        self.menu_bar.add_cascade(label="Help", menu=help_menu)
         self.title_label = tk.Label(self.root, text="PASSWORD GENERATOR", font=("Arial", 24, "bold"), bg="black", fg="white")
         self.title_label.pack(pady=10)
         self.label_length = tk.Label(self.root, text="Password Length:", bg="black", fg="white")
@@ -140,30 +158,8 @@ class PasswordGeneratorApp:
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
 
-    def show_context_menu(self, event):
-        self.password_listbox.unbind("<<ListboxSelect>>")
-        index = self.password_listbox.nearest(event.y)
-        if index >= 0:
-            self.password_listbox.selection_clear(0, tk.END)
-            self.password_listbox.selection_set(index)
-        self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
-        try:
-            self.context_menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            self.context_menu.grab_release()
 
-    def copy_selected_password(self):
-        selected_index = self.password_listbox.curselection()
-        if selected_index:
-            selected_password = self.password_listbox.get(selected_index)
-            self.copy_password_from_history(selected_password)
-
-    def delete_selected_password(self):
-        selected_index = self.password_listbox.curselection()
-        if selected_index:
-            index = selected_index[0]
-            del self.password_history[index]
-            self.update_password_history()
+            
 
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
@@ -174,6 +170,9 @@ class PasswordGeneratorApp:
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
 
+
+    def show_about(self):
+        messagebox.showinfo("About", "Password Generator\nGenerate secure passwords.")
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
