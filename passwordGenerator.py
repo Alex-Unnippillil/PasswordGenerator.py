@@ -28,8 +28,9 @@ class PasswordGeneratorApp:
         self.use_uppercase = tk.BooleanVar()
         self.use_digits = tk.BooleanVar()
         self.use_special_chars = tk.BooleanVar()
-        style = ttk.Style()
-        style.configure("Custom.TCheckbutton", background="black", foreground="white")
+        self.style = ttk.Style()
+        self.style.configure("Custom.TCheckbutton", background="black", foreground="white")
+        self.style.configure("Strength.Horizontal.TProgressbar", background="red")
         self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase, style="Custom.TCheckbutton")
         self.check_lowercase.pack()
         self.check_uppercase = ttk.Checkbutton(self.root, text="Uppercase", variable=self.use_uppercase, style="Custom.TCheckbutton")
@@ -46,7 +47,7 @@ class PasswordGeneratorApp:
         self.generate_button.pack(pady=10)
         self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
         self.strength_label.pack()
-        self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
+        self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200, style="Strength.Horizontal.TProgressbar")
         self.progress.pack()
         self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
         self.copy_button.pack()
@@ -131,6 +132,18 @@ class PasswordGeneratorApp:
 
         strength_score = (length_strength + charset_strength + repeated_strength) / 3.0
         self.progress["value"] = strength_score * 100
+
+        def score_to_color(score):
+            if score < 0.5:
+                ratio = score / 0.5
+                r, g = 255, int(255 * ratio)
+            else:
+                ratio = (score - 0.5) / 0.5
+                r, g = int(255 * (1 - ratio)), 255
+            return f"#{r:02x}{g:02x}00"
+
+        color = score_to_color(strength_score)
+        self.style.configure("Strength.Horizontal.TProgressbar", background=color)
 
         if strength_score < 0.33:
             strength_text = "Weak"
