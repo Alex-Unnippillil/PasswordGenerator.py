@@ -14,6 +14,10 @@ class PasswordGeneratorApp:
         self.password_history = []
         self._status_after_id = None
         self.create_widgets()
+        self.create_menu()
+        self.root.bind("<Control-g>", lambda e: self.generate_password())
+        self.root.bind("<Control-c>", lambda e: self.copy_to_clipboard())
+        self.root.bind("<Control-s>", lambda e: self.save_password_to_file())
 
     def create_widgets(self):
         self.root.configure(bg="black")
@@ -50,6 +54,14 @@ class PasswordGeneratorApp:
         self.strength_label.pack()
         self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
         self.progress.pack()
+        self.auto_copy_var = tk.BooleanVar()
+        self.auto_copy_check = ttk.Checkbutton(
+            self.root,
+            text="Auto-copy",
+            variable=self.auto_copy_var,
+            style="Custom.TCheckbutton",
+        )
+        self.auto_copy_check.pack()
         self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
         self.copy_button.pack()
         self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
@@ -61,6 +73,8 @@ class PasswordGeneratorApp:
         self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
         self.status_bar = ttk.Label(self.root, text="", style="Status.TLabel", anchor="w")
         self.status_bar.pack(side="bottom", fill="x")
+
+
 
     def generate_password(self):
         length = int(self.password_length.get())
@@ -83,7 +97,12 @@ class PasswordGeneratorApp:
             return
 
         password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        self.generated_password = password
+        if self.auto_copy_var.get():
+            pyperclip.copy(password)
+            self.status_bar.config(text="Password generated and copied to clipboard.")
+        else:
+            self.status_bar.config(text="Password generated.")
         self.show_password_strength(password)
         self.show_password_message(password)
 
@@ -101,7 +120,7 @@ class PasswordGeneratorApp:
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):
             pyperclip.copy(self.generated_password)
-            self.set_status("Password copied to clipboard successfully.")
+
         else:
             self.set_status("Please generate a password first.")
 
@@ -121,6 +140,31 @@ class PasswordGeneratorApp:
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
 
+    def show_context_menu(self, event):
+        self.password_listbox.unbind("<<ListboxSelect>>")
+        index = self.password_listbox.nearest(event.y)
+        if index >= 0:
+            self.password_listbox.selection_clear(0, tk.END)
+            self.password_listbox.selection_set(index)
+        self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
+        try:
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()
+
+    def copy_selected_password(self):
+        selected_index = self.password_listbox.curselection()
+        if selected_index:
+            selected_password = self.password_listbox.get(selected_index)
+            self.copy_password_from_history(selected_password)
+
+    def delete_selected_password(self):
+        selected_index = self.password_listbox.curselection()
+        if selected_index:
+            index = selected_index[0]
+            del self.password_history[index]
+            self.update_password_history()
+
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
         if selected_index:
@@ -129,7 +173,7 @@ class PasswordGeneratorApp:
 
     def copy_password_from_history(self, password):
         pyperclip.copy(password)
-        self.set_status("Password copied to clipboard from history.")
+
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
