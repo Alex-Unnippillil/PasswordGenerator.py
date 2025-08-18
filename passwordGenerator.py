@@ -4,6 +4,8 @@ import string
 import random
 import pyperclip
 
+AMBIGUOUS_CHARS = {'l', 'I', '1', 'O', '0'}
+
 class PasswordGeneratorApp:
     def __init__(self, root):
         self.root = root
@@ -28,6 +30,7 @@ class PasswordGeneratorApp:
         self.use_uppercase = tk.BooleanVar()
         self.use_digits = tk.BooleanVar()
         self.use_special_chars = tk.BooleanVar()
+        self.exclude_ambiguous = tk.BooleanVar()
         style = ttk.Style()
         style.configure("Custom.TCheckbutton", background="black", foreground="white")
         self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase, style="Custom.TCheckbutton")
@@ -38,10 +41,13 @@ class PasswordGeneratorApp:
         self.check_digits.pack()
         self.check_special_chars = ttk.Checkbutton(self.root, text="Special Characters", variable=self.use_special_chars, style="Custom.TCheckbutton")
         self.check_special_chars.pack()
+        self.check_exclude_ambiguous = ttk.Checkbutton(self.root, text="Exclude ambiguous characters", variable=self.exclude_ambiguous, style="Custom.TCheckbutton")
+        self.check_exclude_ambiguous.pack()
         self.use_lowercase.set(True)
         self.use_uppercase.set(True)
         self.use_digits.set(True)
         self.use_special_chars.set(True)
+        self.exclude_ambiguous.set(False)
         self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
         self.generate_button.pack(pady=10)
         self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
@@ -78,8 +84,14 @@ class PasswordGeneratorApp:
             messagebox.showerror("Error", "Please select at least one character set.")
             return
 
+        if self.exclude_ambiguous.get():
+            charset = ''.join(ch for ch in charset if ch not in AMBIGUOUS_CHARS)
+            if not charset:
+                messagebox.showerror("Error", "No characters left after excluding ambiguous characters.")
+                return
+
         password = ''.join(random.choice(charset) for _ in range(length))
-        self.generated_password = password 
+        self.generated_password = password
         self.show_password_strength(password)
         self.show_password_message(password)
 
