@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 import string
-import random
+import secrets
 import pyperclip
 
 class PasswordGeneratorApp:
@@ -78,7 +78,7 @@ class PasswordGeneratorApp:
             messagebox.showerror("Error", "Please select at least one character set.")
             return
 
-        password = ''.join(random.choice(charset) for _ in range(length))
+        password = ''.join(secrets.choice(charset) for _ in range(length))
         self.generated_password = password 
         self.show_password_strength(password)
         self.show_password_message(password)
