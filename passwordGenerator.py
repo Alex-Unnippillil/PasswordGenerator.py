@@ -2,9 +2,6 @@ import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 import string
 import secrets
-import pyperclip
-=======
-import random
 
 try:
     import pyperclip
@@ -20,6 +17,7 @@ except ImportError:  # pragma: no cover - handled at runtime
 
     class pyperclip:  # type: ignore
         copy = staticmethod(_pyperclip_copy_stub)
+
 
 class Tooltip:
     def __init__(self, widget, text):
@@ -51,6 +49,7 @@ class Tooltip:
         if self.tipwindow:
             self.tipwindow.destroy()
             self.tipwindow = None
+
 
 class PasswordGeneratorApp:
     def __init__(self, root):
@@ -87,78 +86,183 @@ class PasswordGeneratorApp:
         help_menu = tk.Menu(self.menu_bar, tearoff=0)
         help_menu.add_command(label="About", command=self.show_about)
         self.menu_bar.add_cascade(label="Help", menu=help_menu)
-        self.title_label = tk.Label(self.root, text="PASSWORD GENERATOR", font=("Arial", 24, "bold"), bg="black", fg="white")
+
+        self.title_label = tk.Label(
+            self.root,
+            text="PASSWORD GENERATOR",
+            font=("Arial", 24, "bold"),
+            bg="black",
+            fg="white",
+        )
         self.title_label.pack(pady=10)
-        self.label_length = tk.Label(self.root, text="Password Length:", bg="black", fg="white")
-        self.label_length.pack()
-        self.password_length = tk.Spinbox(self.root, from_=4, to=128, textvariable=self.password_length_value)
-        self.password_length.pack()
-        self.tooltip_length = Tooltip(self.password_length, "Set desired password length")
-        self.label_charset = tk.Label(self.root, text="Character Set:", bg="black", fg="white")
-        self.label_charset.pack()
-        self.use_lowercase = tk.BooleanVar()
-        self.use_uppercase = tk.BooleanVar()
-        self.use_digits = tk.BooleanVar()
-        self.use_special_chars = tk.BooleanVar()
+
         style = ttk.Style()
         style.configure("Custom.TCheckbutton", background="black", foreground="white")
         style.configure("Status.TLabel", background="lightgray")
-        self.check_lowercase = ttk.Checkbutton(self.root, text="Lowercase", variable=self.use_lowercase, style="Custom.TCheckbutton")
-        self.check_lowercase.pack()
-        self.tooltip_lowercase = Tooltip(self.check_lowercase, "Include lowercase letters")
-        self.check_uppercase = ttk.Checkbutton(self.root, text="Uppercase", variable=self.use_uppercase, style="Custom.TCheckbutton")
-        self.check_uppercase.pack()
-        self.tooltip_uppercase = Tooltip(self.check_uppercase, "Include uppercase letters")
-        self.check_digits = ttk.Checkbutton(self.root, text="Digits", variable=self.use_digits, style="Custom.TCheckbutton")
-        self.check_digits.pack()
+        style.configure("Black.TFrame", background="black")
+
+        # Options frame
+        options_frame = ttk.Frame(self.root, style="Black.TFrame", padding=10)
+        options_frame.pack(fill="x", padx=10, pady=5)
+
+        label_length = tk.Label(
+            options_frame, text="Password Length:", bg="black", fg="white"
+        )
+        label_length.pack(anchor="w")
+        self.password_length = tk.Spinbox(
+            options_frame, from_=4, to=128, textvariable=self.password_length_value
+        )
+        self.password_length.pack(anchor="w", pady=(0, 5))
+        self.tooltip_length = Tooltip(
+            self.password_length, "Set desired password length"
+        )
+
+        label_charset = tk.Label(
+            options_frame, text="Character Set:", bg="black", fg="white"
+        )
+        label_charset.pack(anchor="w")
+
+        self.use_lowercase = tk.BooleanVar(value=True)
+        self.use_uppercase = tk.BooleanVar(value=True)
+        self.use_digits = tk.BooleanVar(value=True)
+        self.use_special_chars = tk.BooleanVar(value=True)
+
+        self.check_lowercase = ttk.Checkbutton(
+            options_frame,
+            text="Lowercase",
+            variable=self.use_lowercase,
+            style="Custom.TCheckbutton",
+        )
+        self.check_lowercase.pack(anchor="w")
+        self.tooltip_lowercase = Tooltip(
+            self.check_lowercase, "Include lowercase letters"
+        )
+
+        self.check_uppercase = ttk.Checkbutton(
+            options_frame,
+            text="Uppercase",
+            variable=self.use_uppercase,
+            style="Custom.TCheckbutton",
+        )
+        self.check_uppercase.pack(anchor="w")
+        self.tooltip_uppercase = Tooltip(
+            self.check_uppercase, "Include uppercase letters"
+        )
+
+        self.check_digits = ttk.Checkbutton(
+            options_frame,
+            text="Digits",
+            variable=self.use_digits,
+            style="Custom.TCheckbutton",
+        )
+        self.check_digits.pack(anchor="w")
         self.tooltip_digits = Tooltip(self.check_digits, "Include numbers")
-        self.check_special_chars = ttk.Checkbutton(self.root, text="Special Characters", variable=self.use_special_chars, style="Custom.TCheckbutton")
-        self.check_special_chars.pack()
-        self.tooltip_special_chars = Tooltip(self.check_special_chars, "Include special characters")
-        self.use_lowercase.set(True)
-        self.use_uppercase.set(True)
-        self.use_digits.set(True)
-        self.use_special_chars.set(True)
-        self.generate_button = tk.Button(self.root, text="Generate Password", command=self.generate_password, bg="black", fg="white")
-        self.generate_button.pack(pady=10)
-        self.tooltip_generate = Tooltip(self.generate_button, "Create a new password")
-        self.strength_label = tk.Label(self.root, text="Password Strength:", bg="black", fg="white")
-        self.strength_label.pack()
-        self.progress = ttk.Progressbar(self.root, orient="horizontal", mode="determinate", length=200)
-        self.progress.pack()
+
+        self.check_special_chars = ttk.Checkbutton(
+            options_frame,
+            text="Special Characters",
+            variable=self.use_special_chars,
+            style="Custom.TCheckbutton",
+        )
+        self.check_special_chars.pack(anchor="w")
+        self.tooltip_special_chars = Tooltip(
+            self.check_special_chars, "Include special characters"
+        )
+
+        # Actions frame
+        actions_frame = ttk.Frame(self.root, style="Black.TFrame", padding=10)
+        actions_frame.pack(fill="x", padx=10, pady=5)
+
+        self.generate_button = tk.Button(
+            actions_frame,
+            text="Generate Password",
+            command=self.generate_password,
+            bg="black",
+            fg="white",
+        )
+        self.generate_button.pack(fill="x", pady=(0, 5))
+        self.tooltip_generate = Tooltip(
+            self.generate_button, "Create a new password"
+        )
+
+        self.strength_label = tk.Label(
+            actions_frame, text="Password Strength:", bg="black", fg="white"
+        )
+        self.strength_label.pack(anchor="w")
+        self.progress = ttk.Progressbar(
+            actions_frame, orient="horizontal", mode="determinate", length=200
+        )
+        self.progress.pack(fill="x", pady=5)
+
         self.auto_copy_var = tk.BooleanVar()
         self.auto_copy_check = ttk.Checkbutton(
-            self.root,
+            actions_frame,
             text="Auto-copy",
             variable=self.auto_copy_var,
             style="Custom.TCheckbutton",
         )
-        self.auto_copy_check.pack()
-        self.copy_button = tk.Button(self.root, text="Copy Password to Clipboard", command=self.copy_to_clipboard, bg="black", fg="white")
-        self.copy_button.pack()
-        self.tooltip_copy = Tooltip(self.copy_button, "Copy password to clipboard")
-        self.save_button = tk.Button(self.root, text="Save Password to File", command=self.save_password_to_file, bg="black", fg="white")
-        self.save_button.pack()
+        self.auto_copy_check.pack(anchor="w", pady=(0, 5))
+
+        self.copy_button = tk.Button(
+            actions_frame,
+            text="Copy Password to Clipboard",
+            command=self.copy_to_clipboard,
+            bg="black",
+            fg="white",
+        )
+        self.copy_button.pack(fill="x", pady=(0, 5))
+        self.tooltip_copy = Tooltip(
+            self.copy_button, "Copy password to clipboard"
+        )
+
+        self.save_button = tk.Button(
+            actions_frame,
+            text="Save Password to File",
+            command=self.save_password_to_file,
+            bg="black",
+            fg="white",
+        )
+        self.save_button.pack(fill="x")
         self.tooltip_save = Tooltip(self.save_button, "Save passwords to file")
-        self.history_label = tk.Label(self.root, text="Password History:", bg="black", fg="white")
-        self.history_label.pack()
-        self.password_listbox = tk.Listbox(self.root, bg="black", fg="white", selectbackground="gray", selectforeground="black")
-        self.password_listbox.pack(padx=10, pady=5, fill="both", expand=True)
-        self.password_listbox.bind("<<ListboxSelect>>", self.on_password_selected)
-        self.status_bar = ttk.Label(self.root, text="", style="Status.TLabel", anchor="w")
+
+        # History frame
+        history_frame = ttk.Frame(self.root, style="Black.TFrame", padding=10)
+        history_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        self.history_label = tk.Label(
+            history_frame, text="Password History:", bg="black", fg="white"
+        )
+        self.history_label.pack(anchor="w")
+        self.password_listbox = tk.Listbox(
+            history_frame,
+            bg="black",
+            fg="white",
+            selectbackground="gray",
+            selectforeground="black",
+        )
+        self.password_listbox.pack(fill="both", expand=True, pady=5)
+        self.password_listbox.bind(
+            "<<ListboxSelect>>", self.on_password_selected
+        )
+
+        self.status_bar = ttk.Label(
+            self.root, text="", style="Status.TLabel", anchor="w"
+        )
         self.status_bar.pack(side="bottom", fill="x")
-
-
 
     def generate_password(self):
         try:
             length = int(self.password_length.get())
         except ValueError:
-            messagebox.showerror("Error", "Please enter a valid number for password length.")
+            messagebox.showerror(
+                "Error", "Please enter a valid number for password length."
+            )
             return
 
         if not 4 <= length <= 128:
-            messagebox.showerror("Error", "Password length must be between 4 and 128.")
+            messagebox.showerror(
+                "Error", "Password length must be between 4 and 128."
+            )
             return
         charset = ""
 
@@ -175,38 +279,33 @@ class PasswordGeneratorApp:
             charset += string.punctuation
 
         if not charset:
-            messagebox.showerror("Error", "Please select at least one character set.")
+            messagebox.showerror(
+                "Error", "Please select at least one character set."
+            )
             return
 
-        password = ''.join(secrets.choice(charset) for _ in range(length))
-        self.generated_password = password 
-=======
-        password = ''.join(random.choice(charset) for _ in range(length))
+        password = "".join(secrets.choice(charset) for _ in range(length))
         self.generated_password = password
         if self.auto_copy_var.get():
-            pyperclip.copy(password)
-            self.set_status("Password generated and copied to clipboard.")
-=======
-            try:
-                pyperclip.copy(password)
-                self.status_bar.config(text="Password generated and copied to clipboard.")
-            except pyperclip.PyperclipException:
-                self.status_bar.config(text="Password generated.")
-                self.set_status("Clipboard unavailable.")
-=======
             if PYPERCLIP_AVAILABLE:
-                pyperclip.copy(password)
-                self.set_status("Password generated and copied to clipboard.")
+                try:
+                    pyperclip.copy(password)
+                    self.set_status("Password generated and copied to clipboard.")
+                except pyperclip.PyperclipException:
+                    self.set_status("Password generated. Clipboard unavailable.")
             else:
-                pyperclip.copy(password)
-                self.set_status("Password generated. Install pyperclip to enable copying.")
+                self.set_status(
+                    "Password generated. Install pyperclip to enable copying."
+                )
         else:
             self.set_status("Password generated.")
         self.show_password_strength(password)
         self.show_password_message(password)
 
     def show_password_message(self, password):
-        messagebox.showinfo("Generated Password", f"Your password is:\n{password}")
+        messagebox.showinfo(
+            "Generated Password", f"Your password is:\n{password}"
+        )
         self.password_history.append(password)
         self.update_password_history()
 
@@ -214,23 +313,19 @@ class PasswordGeneratorApp:
         self.status_bar.config(text=message)
         if self._status_after_id:
             self.root.after_cancel(self._status_after_id)
-        self._status_after_id = self.root.after(timeout_ms, lambda: self.status_bar.config(text=""))
+        self._status_after_id = self.root.after(
+            timeout_ms, lambda: self.status_bar.config(text="")
+        )
 
     def copy_to_clipboard(self):
         if hasattr(self, "generated_password"):
-            pyperclip.copy(self.generated_password)
-            self.set_status("Password copied.")
-=======
-            try:
-                pyperclip.copy(self.generated_password)
-            except pyperclip.PyperclipException:
-                self.set_status("Clipboard unavailable.")
-=======
             if PYPERCLIP_AVAILABLE:
-                pyperclip.copy(self.generated_password)
-                self.set_status("Password copied to clipboard.")
+                try:
+                    pyperclip.copy(self.generated_password)
+                    self.set_status("Password copied to clipboard.")
+                except pyperclip.PyperclipException:
+                    self.set_status("Clipboard unavailable.")
             else:
-                pyperclip.copy(self.generated_password)
                 self.set_status("Install pyperclip to enable copying.")
         else:
             self.set_status("Please generate a password first.")
@@ -240,7 +335,9 @@ class PasswordGeneratorApp:
             self.set_status("No passwords generated yet.")
             return
 
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt", filetypes=[("Text Files", "*.txt")]
+        )
         if file_path:
             with open(file_path, "w") as file:
                 file.write("\n".join(self.password_history))
@@ -256,9 +353,6 @@ class PasswordGeneratorApp:
         for password in self.password_history:
             self.password_listbox.insert(tk.END, password)
 
-
-            
-
     def on_password_selected(self, event):
         selected_index = self.password_listbox.curselection()
         if selected_index:
@@ -266,31 +360,33 @@ class PasswordGeneratorApp:
             self.copy_password_from_history(selected_password)
 
     def copy_password_from_history(self, password):
-        pyperclip.copy(password)
-        self.set_status("Password copied.")
-=======
-        try:
-            pyperclip.copy(password)
-        except pyperclip.PyperclipException:
-            self.set_status("Clipboard unavailable.")
-=======
         if PYPERCLIP_AVAILABLE:
-            pyperclip.copy(password)
-            self.set_status("Password copied to clipboard.")
+            try:
+                pyperclip.copy(password)
+                self.set_status("Password copied to clipboard.")
+            except pyperclip.PyperclipException:
+                self.set_status("Clipboard unavailable.")
         else:
-            pyperclip.copy(password)
             self.set_status("Install pyperclip to enable copying.")
 
-
     def show_about(self):
-        messagebox.showinfo("About", "Password Generator\nGenerate secure passwords.")
+        messagebox.showinfo(
+            "About", "Password Generator\nGenerate secure passwords."
+        )
 
     def show_password_strength(self, password):
         length_strength = min(len(password) / 20.0, 1.0)
-        charset_strength = sum(
-            (bool(self.use_lowercase.get()), bool(self.use_uppercase.get()), bool(self.use_digits.get()),
-             bool(self.use_special_chars.get()))
-        ) / 4.0
+        charset_strength = (
+            sum(
+                (
+                    bool(self.use_lowercase.get()),
+                    bool(self.use_uppercase.get()),
+                    bool(self.use_digits.get()),
+                    bool(self.use_special_chars.get()),
+                )
+            )
+            / 4.0
+        )
         repeated_strength = 1.0 if len(set(password)) == len(password) else 0.5
 
         strength_score = (length_strength + charset_strength + repeated_strength) / 3.0
@@ -305,7 +401,9 @@ class PasswordGeneratorApp:
 
         self.strength_label.config(text=f"Password Strength: {strength_text}")
 
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = PasswordGeneratorApp(root)
     root.mainloop()
+
